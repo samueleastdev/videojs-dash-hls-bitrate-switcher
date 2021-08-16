@@ -37,3 +37,20 @@
     }
   }
 }
+
+.vjs-dash-hls-bitrate-switcher-menu .vjs-button {
+    font-size: 1.5em;
+}
+
+.vjs-dash-hls-bitrate-switcher-menu .vjs-menu {
+    width: 20em;
+    left: -15em;
+}
+
+.vjs-dash-hls-bitrate-switcher-menu .vjs-menu .vjs-menu-content {
+    border-radius: 5px;
+}
+
+.vjs-dash-hls-bitrate-switcher-menu .vjs-menu li {
+    padding: 5px;
+}

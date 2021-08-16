@@ -100,11 +100,8 @@ class DashHlsBitrateSwitcher extends Plugin {
         var RatesButton = videojs.extend(MenuButton, {
             constructor: function() {
                 MenuButton.apply(this, arguments);
-                this.addClass("vjs-icon-cog");
-                this.addClass("vjs-icon-placeholder");
-                this.addClass("vjs-menu-button");
-                this.addClass("vjs-menu-button-popup");
-                this.addClass("vjs-button");
+                this.addClass("vjs-dash-hls-bitrate-switcher-menu");
+                this.children_[0].addClass("vjs-icon-cog");
                 this.controlText("Rates");
             },
             handleClick: function() { },
