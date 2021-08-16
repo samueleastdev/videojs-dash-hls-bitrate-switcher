@@ -16,6 +16,18 @@ https://github.com/videojs/videojs-contrib-quality-levels
 npm install --save videojs-dash-hls-bitrate-switcher
 ```
 
+## How To Run The Code
+
+```sh
+npm install
+```
+
+```sh
+npm start
+```
+
+Open your browser to http://localhost:9999
+
 ## Usage
 
 To include videojs-dash-hls-bitrate-switcher on your website or web application, use any of the following methods.
