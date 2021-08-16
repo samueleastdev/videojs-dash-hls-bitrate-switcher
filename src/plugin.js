@@ -152,6 +152,7 @@ class DashHlsBitrateSwitcher extends Plugin {
                     child.innerHTML = '<span class="vjs-menu-item-text">' + that.formatRendition(res) + ", " + that.formatBps(res.bitrate) + '</span><span class="vjs - control - text" aria-live="polite"></span>';
 
                     menuUL.appendChild(child);
+
                 }
             }
         });
