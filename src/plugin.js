@@ -31,11 +31,16 @@ class DashHlsBitrateSwitcher extends Plugin {
 
         this.options = videojs.mergeOptions(defaults, options);
 
-        this.init();
+        // Only action the plugin for DASH & HLS
+        if (['application/vnd.apple.mpegurl', 'application/x-mpegURL', 'application/dash+xml'].includes(this.player.currentType())) {
 
-        this.player.ready(() => {
-            this.player.addClass("vjs-dash-hls-bitrate-switcher");
-        });
+            this.init();
+
+            this.player.ready(() => {
+                this.player.addClass("vjs-dash-hls-bitrate-switcher");
+            });
+
+        }
 
     }
 
