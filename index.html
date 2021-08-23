@@ -26,6 +26,8 @@
                 "videojs-dash-hls-bitrate-switcher-player"
             ));
 
+            examplePlayer.getChild("controlBar").removeChild("FullscreenToggle");
+
             var dashHlsBitrateSwitcher = (window.dashHlsBitrateSwitcher =
                 examplePlayer.dashHlsBitrateSwitcher({
                     support: "both",

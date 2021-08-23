@@ -109,12 +109,16 @@ class DashHlsBitrateSwitcher extends Plugin {
 
         videojs.registerComponent("ratesButton", RatesButton);
         this.player.getChild("controlBar").addChild("ratesButton", {});
-        this.player.getChild("controlBar").el().insertBefore(
-            this.player.getChild("controlBar").getChild("ratesButton").el(),
-            this.player.getChild("controlBar").getChild("fullscreenToggle").el()
-        );
 
-        this.player.one("canplaythrough", function(_event) {
+        // If the fullscreen button is present insert before
+        if (this.player.getChild("controlBar").getChild("fullscreenToggle")) {
+            this.player.getChild("controlBar").el().insertBefore(
+                this.player.getChild("controlBar").getChild("ratesButton").el(),
+                this.player.getChild("controlBar").getChild("fullscreenToggle").el()
+            );
+        }
+
+        this.player.one(((videojs.browser.IS_IOS) ? "canplaythrough" : "loadedmetadata"), function(_event) {
 
             var controlBtn = this.getChild("controlBar").getChild("ratesButton");
 
