@@ -1,7 +1,7 @@
-import videojs from "video.js";
-import { version as VERSION } from "../package.json";
+import videojs from 'video.js';
+import { version as VERSION } from '../package.json';
 
-const Plugin = videojs.getPlugin("plugin");
+const Plugin = videojs.getPlugin('plugin');
 
 // Default options for the plugin.
 const defaults = {};
@@ -12,157 +12,166 @@ const defaults = {};
  * See: https://blog.videojs.com/feature-spotlight-advanced-plugins/
  */
 class DashHlsBitrateSwitcher extends Plugin {
-    /**
-     * Create a DashHlsBitrateSwitcher plugin instance.
-     *
-     * @param  {Player} player
-     *         A Video.js Player instance.
-     *
-     * @param  {Object} [options]
-     *         An optional options object.
-     *
-     *         While not a core part of the Video.js plugin architecture, a
-     *         second argument of options is a convenient way to accept inputs
-     *         from your plugin's caller.
-     */
-    constructor(player, options) {
-        // the parent class will add player under this.player
-        super(player);
+  /**
+   * Create a DashHlsBitrateSwitcher plugin instance.
+   *
+   * @param  {Player} player
+   *         A Video.js Player instance.
+   *
+   * @param  {Object} [options]
+   *         An optional options object.
+   *
+   *         While not a core part of the Video.js plugin architecture, a
+   *         second argument of options is a convenient way to accept inputs
+   *         from your plugin's caller.
+   */
+  constructor(player, options) {
 
-        this.options = videojs.mergeOptions(defaults, options);
+    super(player);
 
-        // Only action the plugin for DASH & HLS
-        if (['application/vnd.apple.mpegurl', 'application/x-mpegURL', 'application/dash+xml'].includes(this.player.currentType())) {
+    this.options = videojs.mergeOptions(defaults, options);
 
-            this.init();
+    this.player.ready(() => {
+      this.player.addClass('vjs-dash-hls-bitrate-switcher');
+    });
 
-            this.player.ready(() => {
-                this.player.addClass("vjs-dash-hls-bitrate-switcher");
-            });
+    if (['application/vnd.apple.mpegurl', 'application/x-mpegURL', 'application/dash+xml'].includes(this.player.currentType())) {
 
-        }
+      this.init();
 
     }
 
-    sortProperties(obj) {
+  }
 
-        obj = obj.levels_;
+  sortProperties(obj) {
 
-        // convert object into array
-        var sortable = [];
+    obj = obj.levels_;
 
-        for (var key in obj) {
-            if (obj.hasOwnProperty(key)) {
-                sortable.push(obj[key]); // each item is an array in format [key, value]
-            }
-        }
+    // convert object into array
+    const sortable = [];
 
-        // sort items by value
-        sortable.sort(function(a, b) {
-            if (b.hasOwnProperty("height")) {
-                return a.height - b.height;
-            }
-
-            if (b.hasOwnProperty("bandwidth")) {
-                return a.bandwidth - b.bandwidth;
-            }
-        });
-
-        return sortable.reverse();
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        sortable.push(obj[key]);
+      }
     }
 
-    // Format the bandwidth bps
-    formatBps(bits) {
+    // sort items by value
+    sortable.sort(function(a, b) {
+      if (b.hasOwnProperty('height')) {
+        return a.height - b.height;
+      }
 
-        var i = -1;
-        var byteUnits = [' kbps', ' Mbps', ' Gbps', ' Tbps', 'Pbps', 'Ebps', 'Zbps', 'Ybps'];
-        do {
-            bits = bits / 1024;
-            i++;
-        } while (bits > 1024);
+      if (b.hasOwnProperty('bandwidth')) {
+        return a.bandwidth - b.bandwidth;
+      }
+    });
 
-        return Math.max(bits, 0.1).toFixed(1) + byteUnits[i];
+    return sortable.reverse();
+  }
+
+  formatBps(bits) {
+
+    let i = -1;
+
+    const byteUnits = [' kbps', ' Mbps', ' Gbps', ' Tbps', 'Pbps', 'Ebps', 'Zbps', 'Ybps'];
+
+    do {
+      bits = bits / 1024;
+      i++;
+    } while (bits > 1024);
+
+    return Math.max(bits, 0.1).toFixed(1) + byteUnits[i];
+
+  }
+
+  formatRendition(preset) {
+
+    // Pass all other checks now lets use the correct functionality
+    let presetText = '';
+
+    if (preset.hasOwnProperty('height')) {
+
+      presetText = preset.height + 'p';
+
+    } else {
+
+      presetText = Math.round(preset.bandwidth / 1000) + 'k';
 
     }
 
-    formatRendition(preset) {
+    return presetText;
 
-        // Pass all other checks now lets use the correct functionality
-        if (preset.hasOwnProperty('height')) {
-            return preset.height + "p";
-        } else {
-            return Math.round(preset.bandwidth / 1000) + "k";
-        }
+  }
 
+  init(callback) {
+    const that = this;
+
+    // Creates button
+    const MenuButton = videojs.getComponent('MenuButton');
+
+    const RatesButton = videojs.extend(MenuButton, {
+      constructor: function() {
+        MenuButton.apply(this, arguments);
+        this.addClass('vjs-dash-hls-bitrate-switcher-menu');
+        this.children_[0].addClass('vjs-icon-cog');
+        this.controlText('Rates');
+      }
+    });
+
+    videojs.registerComponent('ratesButton', RatesButton);
+    this.player.getChild('controlBar').addChild('ratesButton', {});
+
+    // If the fullscreen button is present insert before
+    if (this.player.getChild('controlBar').getChild('fullscreenToggle')) {
+      this.player.getChild('controlBar').el().insertBefore(
+        this.player.getChild('controlBar').getChild('ratesButton').el(),
+        this.player.getChild('controlBar').getChild('fullscreenToggle').el()
+      );
     }
 
-    init(callback) {
-        var that = this;
+    this.player.one(((videojs.browser.IS_IOS) ? 'canplaythrough' : 'loadedmetadata'), function(_event) {
 
-        // Creates button
-        var MenuButton = videojs.getComponent("MenuButton");
+      const controlBtn = this.getChild('controlBar').getChild('ratesButton');
 
-        var RatesButton = videojs.extend(MenuButton, {
-            constructor: function() {
-                MenuButton.apply(this, arguments);
-                this.addClass("vjs-dash-hls-bitrate-switcher-menu");
-                this.children_[0].addClass("vjs-icon-cog");
-                this.controlText("Rates");
-            },
-            handleClick: function() { },
-        });
+      const menuUL = controlBtn.el().children[1].children[0];
 
-        videojs.registerComponent("ratesButton", RatesButton);
-        this.player.getChild("controlBar").addChild("ratesButton", {});
+      const qualityLevels = that.sortProperties(this.qualityLevels());
 
-        // If the fullscreen button is present insert before
-        if (this.player.getChild("controlBar").getChild("fullscreenToggle")) {
-            this.player.getChild("controlBar").el().insertBefore(
-                this.player.getChild("controlBar").getChild("ratesButton").el(),
-                this.player.getChild("controlBar").getChild("fullscreenToggle").el()
-            );
-        }
+      for (let i = 0; i < qualityLevels.length; i++) {
 
-        this.player.one(((videojs.browser.IS_IOS) ? "canplaythrough" : "loadedmetadata"), function(_event) {
+        const res = qualityLevels[i];
 
-            var controlBtn = this.getChild("controlBar").getChild("ratesButton");
+        if (res.height) {
+          const child = document.createElement('li');
 
-            var menuUL = controlBtn.el().children[1].children[0];
+          child.addEventListener(
+            'click',
+            (function(index) {
+              return function() {
+                for (let r = 0; r < qualityLevels.length; r++) {
+                  const quality = qualityLevels[r];
 
-            var qualityLevels = that.sortProperties(this.qualityLevels());
-
-            for (var i = 0; i < qualityLevels.length; i++) {
-                var res = qualityLevels[i];
-                if (res.height) {
-                    var child = document.createElement("li");
-
-                    child.addEventListener(
-                        "click",
-                        (function(index) {
-                            return function() {
-                                for (var r = 0; r < qualityLevels.length; r++) {
-                                    var quality = qualityLevels[r];
-
-                                    if (quality.height === qualityLevels[index].height) {
-                                        quality.enabled = true;
-                                    } else {
-                                        quality.enabled = false;
-                                    }
-                                }
-                            };
-                        })(i)
-                    );
-
-                    child.className = "vjs-menu-item";
-
-                    child.innerHTML = '<span class="vjs-menu-item-text">' + that.formatRendition(res) + ", " + that.formatBps(res.bitrate) + '</span><span class="vjs - control - text" aria-live="polite"></span>';
-
-                    menuUL.appendChild(child);
-
+                  if (quality.height === qualityLevels[index].height) {
+                    quality.enabled = true;
+                  } else {
+                    quality.enabled = false;
+                  }
                 }
-            }
-        });
-    }
+              };
+            })(i)
+          );
+
+          child.className = 'vjs-menu-item';
+
+          child.innerHTML = '<span class="vjs-menu-item-text">' + that.formatRendition(res) + ", " + that.formatBps(res.bitrate) + '</span><span class="vjs - control - text" aria-live="polite"></span>';
+
+          menuUL.appendChild(child);
+
+        }
+      }
+    });
+  }
 }
 
 // Define default values for the plugin's `state` object here.
@@ -172,6 +181,6 @@ DashHlsBitrateSwitcher.defaultState = {};
 DashHlsBitrateSwitcher.VERSION = VERSION;
 
 // Register the plugin with video.js.
-videojs.registerPlugin("dashHlsBitrateSwitcher", DashHlsBitrateSwitcher);
+videojs.registerPlugin('dashHlsBitrateSwitcher', DashHlsBitrateSwitcher);
 
 export default DashHlsBitrateSwitcher;
