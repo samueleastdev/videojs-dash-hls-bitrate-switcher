@@ -3,6 +3,10 @@ import { version as VERSION } from '../package.json';
 
 const Plugin = videojs.getPlugin('plugin');
 
+const MenuButton = videojs.getComponent('MenuButton');
+
+import { PlayBackRatesBtn } from './items.js';
+
 // Default options for the plugin.
 const defaults = {};
 
@@ -29,17 +33,23 @@ class DashHlsBitrateSwitcher extends Plugin {
 
     super(player);
 
+    const self = this;
+
     this.options = videojs.mergeOptions(defaults, options);
 
     this.player.ready(() => {
       this.player.addClass('vjs-dash-hls-bitrate-switcher');
     });
 
-    if (['application/vnd.apple.mpegurl', 'application/x-mpegURL', 'application/dash+xml'].includes(this.player.currentType())) {
+    this.player.one(((videojs.browser.IS_IOS) ? 'canplaythrough' : 'loadedmetadata'), function(_event) {
 
-      this.init();
+      if (['application/vnd.apple.mpegurl', 'application/x-mpegURL', 'application/dash+xml'].includes(this.currentType())) {
 
-    }
+        self.init(this.qualityLevels());
+
+      }
+
+    });
 
   }
 
@@ -104,73 +114,40 @@ class DashHlsBitrateSwitcher extends Plugin {
 
   }
 
-  init(callback) {
-    const that = this;
+  init(levels) {
+    const self = this;
 
-    // Creates button
-    const MenuButton = videojs.getComponent('MenuButton');
-
-    const RatesButton = videojs.extend(MenuButton, {
-      constructor: function() {
-        MenuButton.apply(this, arguments);
-        this.addClass('vjs-dash-hls-bitrate-switcher-menu');
-        this.children_[0].addClass('vjs-icon-cog');
-        this.controlText('Rates');
+    class RatesButton extends MenuButton {
+      constructor(player, options) {
+        super(player, options);
       }
-    });
+      buildCSSClass() {
+        return `vjs-icon-cog ${super.buildCSSClass()}`;
+      }
+      buildWrapperCSSClass() {
+        return `vjs-dash-hls-bitrate-switcher-menu ${super.buildWrapperCSSClass()}`;
+      }
+      createItems(items = []) {
 
-    videojs.registerComponent('ratesButton', RatesButton);
-    this.player.getChild('controlBar').addChild('ratesButton', {});
+        const qualityLevels = self.sortProperties(levels);
 
-    // If the fullscreen button is present insert before
-    if (this.player.getChild('controlBar').getChild('fullscreenToggle')) {
-      this.player.getChild('controlBar').el().insertBefore(
-        this.player.getChild('controlBar').getChild('ratesButton').el(),
-        this.player.getChild('controlBar').getChild('fullscreenToggle').el()
-      );
+        qualityLevels.forEach(level => {
+
+          items.push(new PlayBackRatesBtn(this.player(), {
+            levels: qualityLevels,
+            label: `${self.formatRendition(level)}, ${self.formatBps(level.bitrate)}`,
+            height: level.height
+          }));
+        });
+
+        return items;
+
+      }
     }
 
-    this.player.one(((videojs.browser.IS_IOS) ? 'canplaythrough' : 'loadedmetadata'), function(_event) {
+    videojs.registerComponent('RatesButton', RatesButton);
+    this.player.getChild('controlBar').addChild('RatesButton');
 
-      const controlBtn = this.getChild('controlBar').getChild('ratesButton');
-
-      const menuUL = controlBtn.el().children[1].children[0];
-
-      const qualityLevels = that.sortProperties(this.qualityLevels());
-
-      for (let i = 0; i < qualityLevels.length; i++) {
-
-        const res = qualityLevels[i];
-
-        if (res.height) {
-          const child = document.createElement('li');
-
-          child.addEventListener(
-            'click',
-            (function(index) {
-              return function() {
-                for (let r = 0; r < qualityLevels.length; r++) {
-                  const quality = qualityLevels[r];
-
-                  if (quality.height === qualityLevels[index].height) {
-                    quality.enabled = true;
-                  } else {
-                    quality.enabled = false;
-                  }
-                }
-              };
-            })(i)
-          );
-
-          child.className = 'vjs-menu-item';
-
-          child.innerHTML = '<span class="vjs-menu-item-text">' + that.formatRendition(res) + ", " + that.formatBps(res.bitrate) + '</span><span class="vjs - control - text" aria-live="polite"></span>';
-
-          menuUL.appendChild(child);
-
-        }
-      }
-    });
   }
 }
 
