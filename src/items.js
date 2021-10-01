@@ -10,6 +10,13 @@ export class PlayBackRatesBtn extends MenuItem {
   }
   handleClick(event) {
 
+    // Add the selected class
+    this.parentComponent_.children_.forEach(child => {
+      child.removeClass('vjs-selected');
+    });
+
+    this.addClass('vjs-selected');
+
     this.levels.forEach(level => {
 
       if (this.height === level.height) {
