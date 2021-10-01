@@ -41,16 +41,18 @@ class DashHlsBitrateSwitcher extends Plugin {
       this.player.addClass('vjs-dash-hls-bitrate-switcher');
     });
 
-    this.player.one(((videojs.browser.IS_IOS) ? 'canplaythrough' : 'loadedmetadata'), function(_event) {
-
-      if (['application/vnd.apple.mpegurl', 'application/x-mpegURL', 'application/dash+xml'].includes(this.currentType())) {
-
-        self.init(this.qualityLevels());
-
+    this.player.on('loadstart', function(_event) {
+      if (this.getChild('controlBar').getChild('RatesButton')) {
+        this.getChild('controlBar').removeChild('RatesButton');
       }
 
-    });
+      this.one(((videojs.browser.IS_IOS) ? 'canplaythrough' : 'loadedmetadata'), function(_evt) {
+        if (['application/vnd.apple.mpegurl', 'application/x-mpegURL', 'application/dash+xml'].includes(this.currentType())) {
+          self.init(this.qualityLevels());
+        }
+      });
 
+    });
   }
 
   sortProperties(obj) {
@@ -115,6 +117,7 @@ class DashHlsBitrateSwitcher extends Plugin {
   }
 
   init(levels) {
+
     const self = this;
 
     class RatesButton extends MenuButton {
@@ -132,12 +135,15 @@ class DashHlsBitrateSwitcher extends Plugin {
         const qualityLevels = self.sortProperties(levels);
 
         qualityLevels.forEach(level => {
+          // Height need to be set
+          if (level.height) {
+            items.push(new PlayBackRatesBtn(this.player(), {
+              levels: qualityLevels,
+              label: `${self.formatRendition(level)}, ${self.formatBps(level.bitrate)}`,
+              height: level.height
+            }));
+          }
 
-          items.push(new PlayBackRatesBtn(this.player(), {
-            levels: qualityLevels,
-            label: `${self.formatRendition(level)}, ${self.formatBps(level.bitrate)}`,
-            height: level.height
-          }));
         });
 
         return items;
@@ -146,7 +152,18 @@ class DashHlsBitrateSwitcher extends Plugin {
     }
 
     videojs.registerComponent('RatesButton', RatesButton);
-    this.player.getChild('controlBar').addChild('RatesButton');
+
+    const comps = self.player.getChild('controlBar').children().length;
+
+    if (self.player.getChild('controlBar').getChild('fullscreenToggle')) {
+
+      self.player.getChild('controlBar').addChild('ratesButton', {}, (comps - 1));
+
+    } else {
+
+      self.player.getChild('controlBar').addChild('ratesButton', {}, comps);
+
+    }
 
   }
 }

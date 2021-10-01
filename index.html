@@ -1,39 +1,66 @@
 <!DOCTYPE html>
 <html>
-
-<head>
+  <head>
     <meta charset="utf-8" />
     <title>videojs-dash-hls-bitrate-switcher Demo</title>
     <link href="node_modules/video.js/dist/video-js.css" rel="stylesheet" />
     <link href="dist/videojs-dash-hls-bitrate-switcher.css" rel="stylesheet" />
-</head>
+  </head>
 
-<body>
-    <video id="videojs-dash-hls-bitrate-switcher-player" class="video-js vjs-16-9 vjs-default-skin" controls>
-        <source src="https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd" type="application/dash+xml">
-        <!--<source src="https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8" type="application/x-mpegURL" />-->
+  <body>
+    <video
+      id="videojs-dash-hls-bitrate-switcher-player"
+      class="video-js vjs-16-9 vjs-default-skin"
+      controls
+    >
+      <source
+        src="https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd"
+        type="application/dash+xml"
+      />
+      <!--<source src="https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8" type="application/x-mpegURL" />-->
     </video>
 
     <ul>
-        <li><a href="/test/debug.html">Run unit tests in browser.</a></li>
+      <li><a href="/test/debug.html">Run unit tests in browser.</a></li>
     </ul>
     <script src="node_modules/video.js/dist/video.js"></script>
     <script src="node_modules/videojs-contrib-quality-levels/dist/videojs-contrib-quality-levels.min.js"></script>
     <script src="dist/videojs-dash-hls-bitrate-switcher.js"></script>
     <script>
-        (function(window, videojs) {
-            var examplePlayer = (window.examplePlayer = videojs(
-                "videojs-dash-hls-bitrate-switcher-player"
-            ));
+      (function (window, videojs) {
+        var examplePlayer = (window.examplePlayer = videojs(
+          "videojs-dash-hls-bitrate-switcher-player",
+          {
+            techOrder: ["html5"],
+            html5: {
+              hls: {
+                overrideNative: true,
+                cacheEncryptionKeys: true,
+              },
+            },
+            plugins: {
+              dashHlsBitrateSwitcher: {
+                support: "both",
+              },
+            },
+            crossOrigin: "anonymous",
+            liveui: true,
+            autoplay: true,
+            muted: true,
+            playbackRates: [0.25, 0.5, 0.75, 1, 1.25, 1.5, 1.75, 2],
+            nativeControlsForTouch: false,
+          }
+        ));
 
-            examplePlayer.getChild("controlBar").removeChild("FullscreenToggle");
+        //examplePlayer.getChild("controlBar").removeChild("FullscreenToggle");
 
-            var dashHlsBitrateSwitcher = (window.dashHlsBitrateSwitcher =
-                examplePlayer.dashHlsBitrateSwitcher({
-                    support: "both"
-                }));
-        })(window, window.videojs);
+        setTimeout(function () {
+          examplePlayer.src({
+            src: "https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8",
+            type: "application/x-mpegURL",
+          });
+        }, 5000);
+      })(window, window.videojs);
     </script>
-</body>
-
+  </body>
 </html>
