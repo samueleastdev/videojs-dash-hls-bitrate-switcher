@@ -6,10 +6,15 @@ This plugin requires the Quality Levels plugin
 
 https://github.com/videojs/videojs-contrib-quality-levels
 
+```sh
+npm install --save videojs-contrib-quality-levels
+```
+
 ## Table of Contents
 
 <!-- START doctoc -->
 <!-- END doctoc -->
+
 ## Installation
 
 ```sh
@@ -40,7 +45,7 @@ This is the simplest case. Get the script in whatever way you prefer and include
 <script src="//path/to/video.min.js"></script>
 <script src="//path/to/videojs-dash-hls-bitrate-switcher.min.js"></script>
 <script>
-  var player = videojs('my-video');
+  var player = videojs("my-video");
 
   player.dashHlsBitrateSwitcher();
 </script>
@@ -51,14 +56,14 @@ This is the simplest case. Get the script in whatever way you prefer and include
 When using with Browserify, install videojs-dash-hls-bitrate-switcher via npm and `require` the plugin as you would any other module.
 
 ```js
-var videojs = require('video.js');
+var videojs = require("video.js");
 
 // The actual plugin function is exported by this module, but it is also
 // attached to the `Player.prototype`; so, there is no need to assign it
 // to a variable.
-require('videojs-dash-hls-bitrate-switcher');
+require("videojs-dash-hls-bitrate-switcher");
 
-var player = videojs('my-video');
+var player = videojs("my-video");
 
 player.dashHlsBitrateSwitcher();
 ```
@@ -68,8 +73,8 @@ player.dashHlsBitrateSwitcher();
 When using with RequireJS (or another AMD library), get the script in whatever way you prefer and `require` the plugin as you normally would:
 
 ```js
-require(['video.js', 'videojs-dash-hls-bitrate-switcher'], function(videojs) {
-  var player = videojs('my-video');
+require(["video.js", "videojs-dash-hls-bitrate-switcher"], function (videojs) {
+  var player = videojs("my-video");
 
   player.dashHlsBitrateSwitcher();
 });
@@ -78,6 +83,5 @@ require(['video.js', 'videojs-dash-hls-bitrate-switcher'], function(videojs) {
 ## License
 
 Apache-2.0. Copyright (c) Samuel East
-
 
 [videojs]: http://videojs.com/
