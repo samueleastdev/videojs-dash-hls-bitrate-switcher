@@ -1,6 +1,6 @@
 {
   "name": "@samueleastdev/videojs-dash-hls-bitrate-switcher",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Creates a button in the controlbar that can be used to switch bitrate for DASH and HLS playlists",
   "main": "cjs/plugin.js",
   "module": "es/plugin.js",

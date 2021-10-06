@@ -18,7 +18,7 @@ npm install --save videojs-contrib-quality-levels
 ## Installation
 
 ```sh
-npm install --save videojs-dash-hls-bitrate-switcher
+npm install --save @samueleastdev/videojs-dash-hls-bitrate-switcher
 ```
 
 ## How To Run The Code
