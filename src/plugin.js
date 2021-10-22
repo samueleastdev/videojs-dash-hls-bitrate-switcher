@@ -44,11 +44,15 @@ class DashHlsBitrateSwitcher extends Plugin {
     this.player.on('loadstart', function(_event) {
       if (this.getChild('controlBar').getChild('RatesButton')) {
         this.getChild('controlBar').removeChild('RatesButton');
+        self.qualityLevels.off('change');
       }
 
       this.one(((videojs.browser.IS_IOS) ? 'canplaythrough' : 'loadedmetadata'), function(_evt) {
         if (['application/vnd.apple.mpegurl', 'application/x-mpegURL', 'application/dash+xml'].includes(this.currentType())) {
-          self.init(this.qualityLevels());
+          self.qualityLevels = this.qualityLevels();
+          if (self.qualityLevels.levels_.length > 1) {
+            self.init();
+          }
         }
       });
 
@@ -97,29 +101,26 @@ class DashHlsBitrateSwitcher extends Plugin {
 
   }
 
-  formatRendition(preset) {
+  formatRendition(level) {
 
-    // Pass all other checks now lets use the correct functionality
-    let presetText = '';
+    if (level.hasOwnProperty('height')) {
 
-    if (preset.hasOwnProperty('height')) {
-
-      presetText = preset.height + 'p';
+      if (level.height) {
+        return `${level.height}p, ${this.formatBps(level.bitrate)}`;
+      }
+      return '';
 
     } else {
 
-      presetText = Math.round(preset.bandwidth / 1000) + 'k';
+      return `${this.formatBps(level.bitrate)}`;
 
     }
-
-    return presetText;
 
   }
 
   init(levels) {
 
     const self = this;
-
     class RatesButton extends MenuButton {
       constructor(player, options) {
         super(player, options);
@@ -130,17 +131,29 @@ class DashHlsBitrateSwitcher extends Plugin {
       buildWrapperCSSClass() {
         return `vjs-dash-hls-bitrate-switcher-menu ${super.buildWrapperCSSClass()}`;
       }
+      updateSelected(item) {
+
+        this.items.forEach(child => {
+          if (item.bitrate === parseInt(child.el().getAttribute('data-bitrate'))) {
+            child.addClass('vjs-selected');
+          } else {
+            child.removeClass('vjs-selected');
+          }
+        });
+
+      }
       createItems(items = []) {
 
-        const qualityLevels = self.sortProperties(levels);
+        const qualityLevels = self.sortProperties(self.qualityLevels);
 
         qualityLevels.forEach(level => {
-          // Height need to be set
-          if (level.height) {
+          // bitrate need to be set
+          if (level.bitrate) {
             items.push(new PlayBackRatesBtn(this.player(), {
               levels: qualityLevels,
-              label: `${self.formatRendition(level)}, ${self.formatBps(level.bitrate)}`,
-              height: level.height
+              label: `${self.formatRendition(level)}`,
+              bitrate: level.bitrate,
+              type: level.bitrate
             }));
           }
 
@@ -164,6 +177,13 @@ class DashHlsBitrateSwitcher extends Plugin {
       self.player.getChild('controlBar').addChild('ratesButton', {}, comps);
 
     }
+    // Listen to change events for when the player selects a new quality level
+    self.qualityLevels.on('change', function() {
+      self.player.getChild('controlBar').getChild('ratesButton').updateSelected(self.qualityLevels[self.qualityLevels.selectedIndex]);
+    });
+
+    // Set initial value
+    self.player.getChild('controlBar').getChild('ratesButton').updateSelected(self.qualityLevels[self.qualityLevels.selectedIndex]);
 
   }
 }

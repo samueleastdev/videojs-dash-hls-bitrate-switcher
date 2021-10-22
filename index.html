@@ -18,15 +18,31 @@
         type="application/dash+xml"
       />
       <!--<source src="https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8" type="application/x-mpegURL" />-->
+      <!--<source
+        src="https://d3370nekj200fx.cloudfront.net/1d35a0fe_d046_44a0_96c1_6e014c447752/master.m3u8"
+        type="application/x-mpegURL"
+      />-->
     </video>
 
     <ul>
       <li><a href="/test/debug.html">Run unit tests in browser.</a></li>
+      <li>
+        <a href="#" id="vDash">Switch to DASH manifest.</a>
+      </li>
+      <li>
+        <a href="#" id="vHls">Switch to HLS manifest.</a>
+      </li>
+      <li>
+        <a href="#" id="aHls">Switch to Audio HLS manifest.</a>
+      </li>
     </ul>
     <script src="node_modules/video.js/dist/video.js"></script>
     <script src="node_modules/videojs-contrib-quality-levels/dist/videojs-contrib-quality-levels.min.js"></script>
     <script src="dist/videojs-dash-hls-bitrate-switcher.js"></script>
     <script>
+      function switchTo(type) {
+        console.log(type);
+      }
       (function (window, videojs) {
         var examplePlayer = (window.examplePlayer = videojs(
           "videojs-dash-hls-bitrate-switcher-player",
@@ -54,12 +70,29 @@
 
         //examplePlayer.getChild("controlBar").removeChild("FullscreenToggle");
 
-        setTimeout(function () {
+        document.getElementById("vDash").addEventListener("click", (event) => {
+          examplePlayer.src({
+            src: "https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd",
+            type: "application/dash+xml",
+          });
+          return false;
+        });
+
+        document.getElementById("vHls").addEventListener("click", (event) => {
           examplePlayer.src({
             src: "https://d2zihajmogu5jn.cloudfront.net/bipbop-advanced/bipbop_16x9_variant.m3u8",
             type: "application/x-mpegURL",
           });
-        }, 5000);
+          return false;
+        });
+
+        document.getElementById("aHls").addEventListener("click", (event) => {
+          examplePlayer.src({
+            src: "https://d3370nekj200fx.cloudfront.net/99e5cb34_acc9_4a5c_990c_abe9883a6b3e/master.m3u8",
+            type: "application/x-mpegURL",
+          });
+          return false;
+        });
       })(window, window.videojs);
     </script>
   </body>

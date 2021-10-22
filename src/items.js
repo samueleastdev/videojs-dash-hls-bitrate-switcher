@@ -7,6 +7,7 @@ export class PlayBackRatesBtn extends MenuItem {
     super(player, options);
     this.height = options.height;
     this.levels = options.levels;
+    this.setAttribute('data-bitrate', options.bitrate);
   }
   handleClick(event) {
 
@@ -19,7 +20,7 @@ export class PlayBackRatesBtn extends MenuItem {
 
     this.levels.forEach(level => {
 
-      if (this.height === level.height) {
+      if (this.bitrate === level.bitrate) {
         level.enabled = true;
       } else {
         level.enabled = false;
