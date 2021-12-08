@@ -180,6 +180,8 @@ class DashHlsBitrateSwitcher extends Plugin {
     // Listen to change events for when the player selects a new quality level
     self.qualityLevels.on('change', function() {
       self.player.getChild('controlBar').getChild('ratesButton').updateSelected(self.qualityLevels[self.qualityLevels.selectedIndex]);
+      self.player.playbackRateSwitched = self.qualityLevels[self.qualityLevels.selectedIndex];
+      self.player.trigger('playbackRateSwitched');
     });
 
     // Set initial value
