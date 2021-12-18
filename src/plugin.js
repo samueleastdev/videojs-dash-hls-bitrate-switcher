@@ -46,9 +46,9 @@ class DashHlsBitrateSwitcher extends Plugin {
         this.getChild('controlBar').removeChild('RatesButton');
         self.qualityLevels.off('change');
       }
-
+      //console.log('this.qualityLevels()', this.qualityLevels());
       this.one(((videojs.browser.IS_IOS) ? 'canplaythrough' : 'loadedmetadata'), function(_evt) {
-        if (['application/vnd.apple.mpegurl', 'application/x-mpegURL', 'application/dash+xml'].includes(this.currentType())) {
+        if (['application/x-mpegurl', 'application/vnd.apple.mpegurl', 'application/x-mpegURL', 'application/dash+xml'].includes(this.currentType())) {
           self.qualityLevels = this.qualityLevels();
           if (self.qualityLevels.levels_.length > 1) {
             self.init();
