@@ -48,7 +48,7 @@ class DashHlsBitrateSwitcher extends Plugin {
       }
 
       this.one(((videojs.browser.IS_IOS) ? 'canplaythrough' : 'loadedmetadata'), function(_evt) {
-        if (['application/x-mpegurl', 'application/vnd.apple.mpegurl', 'application/x-mpegURL', 'application/dash+xml'].includes(this.currentType())) {
+        if (['m3u8', 'dash'].includes(self.getExtension(this.currentSrc()))) {
           self.qualityLevels = this.qualityLevels();
           if (self.qualityLevels.levels_.length > 1) {
             self.init();
@@ -57,6 +57,10 @@ class DashHlsBitrateSwitcher extends Plugin {
       });
 
     });
+  }
+
+  getExtension(url) {
+    return url.split(/[#?]/)[0].split('.').pop().trim();
   }
 
   sortProperties(obj) {
