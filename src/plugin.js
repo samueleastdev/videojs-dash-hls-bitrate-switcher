@@ -2,13 +2,20 @@ import videojs from 'video.js';
 import { version as VERSION } from '../package.json';
 
 const Plugin = videojs.getPlugin('plugin');
-
+const Component = videojs.getComponent('Component');
 const MenuButton = videojs.getComponent('MenuButton');
 
 import { PlayBackRatesBtn } from './items.js';
 
 // Default options for the plugin.
-const defaults = {};
+const defaults = {
+  now: null,
+  then: Date.now(),
+  interval: 1000,
+  frames: 0,
+  delta: null,
+  showInfo: false,
+};
 
 /**
  * An advanced Video.js plugin. For more information on the API
@@ -39,6 +46,9 @@ class DashHlsBitrateSwitcher extends Plugin {
 
     this.player.ready(() => {
       this.player.addClass('vjs-dash-hls-bitrate-switcher');
+      if (this.options.showInfo) {
+        self.buildUi();
+      }
     });
 
     this.player.on('loadstart', function(_event) {
@@ -48,14 +58,13 @@ class DashHlsBitrateSwitcher extends Plugin {
       }
 
       this.one(((videojs.browser.IS_IOS) ? 'canplaythrough' : 'loadedmetadata'), function(_evt) {
-        if (['m3u8', 'dash'].includes(self.getExtension(this.currentSrc()))) {
+        if (['m3u8', 'mpd'].includes(self.getExtension(this.currentSrc()))) {
           self.qualityLevels = this.qualityLevels();
           if (self.qualityLevels.levels_.length > 1) {
             self.init();
           }
         }
       });
-
     });
   }
 
@@ -90,7 +99,7 @@ class DashHlsBitrateSwitcher extends Plugin {
     return sortable.reverse();
   }
 
-  formatBps(bits) {
+  formatBitrate(bits) {
 
     let i = -1;
 
@@ -110,13 +119,13 @@ class DashHlsBitrateSwitcher extends Plugin {
     if (level.hasOwnProperty('height')) {
 
       if (level.height) {
-        return `${level.height}p, ${this.formatBps(level.bitrate)}`;
+        return `${level.height}p, ${this.formatBitrate(level.bitrate)}`;
       }
       return '';
 
     } else {
 
-      return `${this.formatBps(level.bitrate)}`;
+      return `${this.formatBitrate(level.bitrate)}`;
 
     }
 
@@ -183,14 +192,46 @@ class DashHlsBitrateSwitcher extends Plugin {
     }
     // Listen to change events for when the player selects a new quality level
     self.qualityLevels.on('change', function() {
-      self.player.getChild('controlBar').getChild('ratesButton').updateSelected(self.qualityLevels[self.qualityLevels.selectedIndex]);
-      self.player.playbackRateSwitched = self.qualityLevels[self.qualityLevels.selectedIndex];
-      self.player.trigger('playbackRateSwitched');
+      let rendition = self.qualityLevels[self.qualityLevels.selectedIndex];
+      self.player.getChild('controlBar').getChild('ratesButton').updateSelected(rendition);
+      if (self.player.getChild('streamInfo')) {
+        self.player.getChild('streamInfo').updateTextContent(`<div class="vjs-stream-info-box">Dimensions:${rendition.width}x${rendition.height}<br/>Bitrate:${self.formatBitrate(rendition.bitrate)}<br/>Renditions:${self.qualityLevels.length}<br/>Type:${self.player.currentType()}</div>`);
+      }
     });
 
     // Set initial value
-    self.player.getChild('controlBar').getChild('ratesButton').updateSelected(self.qualityLevels[self.qualityLevels.selectedIndex]);
+    let rendition = self.qualityLevels[self.qualityLevels.selectedIndex];
+    self.player.getChild('controlBar').getChild('ratesButton').updateSelected(rendition);
+    if (self.player.getChild('streamInfo')) {
+      self.player.getChild('streamInfo').updateTextContent(`<div class="vjs-stream-info-box">Dimensions:${rendition.width}x${rendition.height}<br/>Bitrate:${self.formatBitrate(rendition.bitrate)}<br/>Renditions:${self.qualityLevels.length}<br/>Type:${self.player.currentType()}</div>`);
+    }
+  }
 
+  buildUi() {
+
+    const streamInfo = videojs.extend(Component, {
+      constructor: function(player, options) {
+        Component.apply(this, arguments);
+        if (options.text) {
+          this.updateTextContent(options.text);
+        }
+      },
+      createEl: function() {
+        return videojs.createEl('div', {
+          className: 'vjs-stream-info',
+          innerHTML: ''
+        });
+      },
+      updateTextContent: function(text) {
+        if (typeof text !== 'string') {
+          text = '';
+        }
+        this.el().innerHTML = text;
+      }
+    });
+    window.videojs = videojs;
+    videojs.registerComponent('streamInfo', streamInfo);
+    this.player.addChild('streamInfo', { text: '' });
   }
 }
 
